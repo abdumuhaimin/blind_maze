@@ -5,9 +5,9 @@ void bombassign(int[][2]);///ASSIGN THE BOMB COORDINATES
 void exitassign(int[][2]);///ASSIGN THE EXIT COORDINATES EXCEPT THE CORNERS OF MAZE
 int randomgen();///GENERATE A RANDOM NUMBER
 void bombkill();///DISPLAY THE BOMB IMAGE
-int bombhit(int[][2],int*,int*,int,char*);///CHECK WHETHER THE PLAYER HIT THE BOMB OR NOT
+int bombhit(int[][2],int*,int*,int,char*,int*);///CHECK WHETHER THE PLAYER HIT THE BOMB OR NOT
 void displayExit(int[][2],int*,int*);///CHECK IF THE PLAYER ENTER THE EXIT OR NOT
-void bombshow(int*,int*,int[][2],char*,char[][12]);///SHOW THE BOMB ON THE GRID MINUS ONE
+void bombshow(int*,int*,int[][2],char*,char[][12],int*);///SHOW THE BOMB ON THE GRID MINUS ONE
 void exitshow(int*,int*,int[][2],char*,char[][12]);///DISPLAY THE EXIT ON THD GRID
 int tokensExpense(int,int);
 void check(int,char*);
@@ -25,8 +25,9 @@ int main(){
     int col;
     int bomb[20][2];
     int exit[4][2];
-    int tokens = 1;
+    int tokens = 5;
     char replay = 'y';
+    int bombcount;
     srand(time(NULL));
     for(row=1; row<12; row++){
         if(row!=11){
@@ -56,6 +57,7 @@ int main(){
         printf("\n\n");
     }
     int x=5, y=5;
+    bombcount = 0;
     exitassign(exit);
     bombassign(bomb);///ASSIGN THE BOMB COORDINATES
     for(; x<11 && y<11 && (replay == 'y'||replay == 'Y'); ){
@@ -70,10 +72,10 @@ int main(){
                 printf("\n(Invalid move)");
             }
 
-            if(playermove == 'b' || playermove == 'B' && tokens < 2){
+            if((playermove == 'b' || playermove == 'B' )&& tokens < 2){
                 printf("\nInsufficient tokens\n");
             }
-            else if(playermove == 'e' || playermove == 'E' && tokens < 3){
+            else if((playermove == 'e' || playermove == 'E' )&& tokens < 3){
                 printf("\nInsufficient tokens\n");
             }
 
@@ -81,7 +83,7 @@ int main(){
         !='A' &&
         playermove!='d' && playermove!='D' && playermove!='b' && playermove!='B' && playermove!='e' && playermove
         !='E' &&
-        playermove!='n' && playermove!='N' || playermove == 'b' || playermove == 'B' && tokens < 2 || playermove == 'e' || playermove == 'E' && tokens < 3);
+        playermove!='n' && playermove!='N' || ((playermove == 'b' || playermove == 'B') && tokens < 2) || ((playermove == 'e' || playermove == 'E') && tokens < 3));
         switch(playermove){
             case 'w': case 'W':
                 maze[--x][y]=playerposition;
@@ -96,7 +98,7 @@ int main(){
                 maze[x][++y]=playerposition;
                 break;
             case 'b': case 'B':
-                bombshow(&row,&col,bomb,&dot,maze);
+                bombshow(&row,&col,bomb,&dot,maze,&bombcount);
                 ///***implement token decrease
                 tokens = tokensExpense(1,tokens);
                 ///SHOW THE BOMB ON THE GRID MINUS ONE
@@ -111,7 +113,7 @@ int main(){
         }
         system("cls");
         printf("\n\n");
-        tokens = bombhit(bomb,&x,&y,tokens,&replay);///CHECK WHETER THE PLAYER HIT THE BOMB OR NOT
+        tokens = bombhit(bomb,&x,&y,tokens,&replay,&bombcount);///CHECK WHETER THE PLAYER HIT THE BOMB OR NOT
         for(int row=1; row<12 && (replay == 'y'||replay == 'Y'); row++){
             if(row!=11){
                 printf("\t%2d", row);
@@ -195,11 +197,14 @@ void check(int token,char *replay){
         system("pause");
     }
 }
-int bombhit(int bomb[][2],int *x, int *y,int tokens,char *replay){///CHECK WHETER THE PLAYER HIT THE BOMB OR NOT
+int bombhit(int bomb[][2],int *x, int *y,int tokens,char *replay,int *bombcount){///CHECK WHETER THE PLAYER HIT THE BOMB OR NOT
     int i;
     char r = *replay;
     for(i=0;i<20;i++){
         if(bomb[i][0]==*x&&bomb[i][1]==*y){
+            (*bombcount)++;
+            bomb[i][0]=0;
+            bomb[i][1]=0;
             system("cls");
             bombkill();
             ///implement token decrease
@@ -249,19 +254,21 @@ void bombkill(){///DISPLAY THE BOMB IMAGE
     system("pause");
     system("cls");
 }
-void bombshow(int *row,int *col,int bomb[][2],char *dot,char maze[][12]){///SHOW THE BOMB ON THE GRID MINUS ONE
+void bombshow(int *row,int *col,int bomb[][2],char *dot,char maze[][12],int *bombcount){///SHOW THE BOMB ON THE GRID MINUS ONE
     system("cls");
-    for((*row)=1;*row<12; (*row)++){
+    int count;
+    for((*row)=1,count=0;*row<12; (*row)++){
         if(*row !=11){
             printf("\t%2d", *row);
         }
         for((*col)=1; *col<11; (*col)++){
 
             if(*row!=11){
-                for(int i=0;i<19;i++){
+                for(int i=0;i<20&&count<19-*bombcount;i++){
                     if(*row==bomb[i][0] && *col==bomb[i][1]){
                         maze[*row][*col] = 'B';
                         i=20;
+                        count++;
                     }else{
                         maze[*row][*col]= *dot;
                     }
@@ -281,9 +288,15 @@ void bombshow(int *row,int *col,int bomb[][2],char *dot,char maze[][12]){///SHOW
         printf("\n\n");
     }
     printf("Bomb Coordinates : \n");
-    for(int i=0;i<19;){
-        for(int counter = 1;counter<4&&i<19;counter++,i++){
-            printf("Bomb %2d : {%2d,%2d}\t",i+1,bomb[i][0],bomb[i][1]);
+    int bombnum;
+    for(int i=0,count=0,bombnum=1;count<19-*bombcount;){
+        for(int counter = 1;counter<5&&i<20&&count<19-*bombcount;i++){
+            if(bomb[i][0]!=0&&bomb[i][0]!=0){
+            printf("Bomb %2d : {%2d,%2d}\t",bombnum,bomb[i][0],bomb[i][1]);
+            bombnum++;
+            count++;
+            counter++;
+            }
         }
         printf("\n");
     }
