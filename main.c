@@ -129,17 +129,17 @@ int main(){
                 printf("\n(Invalid move)");
             }
 
-if(playermove == 'b' || playermove == 'B' && tokens < 2){
+            if((playermove == 'b' || playermove == 'B') && tokens < 2){
                 printf("\nInsufficient tokens\n");
             }
-            else if(playermove == 'e' || playermove == 'E' && tokens < 3){
+            else if((playermove == 'e' || playermove == 'E') && tokens < 3){
                 printf("\nInsufficient tokens\n");
             }
         }while(playermove!='w' && playermove!='W' && playermove!='s' && playermove!='S' && playermove!='a' && playermove
         !='A' &&
         playermove!='d' && playermove!='D' && playermove!='b' && playermove!='B' && playermove!='e' && playermove
         !='E' &&
-        playermove!='n' && playermove!='N' || (updown>10 || updown<1 || leftright>10 || leftright<1) || playermove == 'B' && tokens < 2 || playermove == 'e' || playermove == 'E' && tokens < 3);
+        playermove!='n' && playermove!='N' || (updown>10 || updown<1 || leftright>10 || leftright<1) ||(playermove=='e' || playermove == 'B') && tokens < 2 || (playermove == 'e' || playermove == 'E') && tokens < 3);
         switch(playermove){
             case 'w': case 'W':
                 maze[--x][y]=playerposition;
